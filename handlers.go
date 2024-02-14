@@ -4,24 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	io "github.com/ismail-alokin/go-todo/utils"
 )
 
 func viewTasks() {
-	fmt.Println("\nView tasks\n-----------")
-	if len(TodoList) == 0 {
-		fmt.Println("No task found")
+	if isTodoListEmpty() {
 		return
 	}
-	for i, _todo := range TodoList {
-		todo, _ := json.MarshalIndent(_todo, "", "    ")
-		fmt.Printf("Task %v: %s", i+1, todo)
-		fmt.Println()
-	}
-	fmt.Println()
+	fmt.Println("\nView tasks\n-----------")
+	listTasks()
 }
 
 func addTasks() {
@@ -40,10 +33,7 @@ func addTasks() {
 		return
 	}
 
-	id := TodoList[len(TodoList)-1].ID + 1
-
 	newTodo := Todo{
-		ID:          id,
 		Title:       title,
 		Description: description,
 		Completed:   completed,
@@ -53,26 +43,65 @@ func addTasks() {
 }
 
 func deleteTasks() {
-	fmt.Println("\nDelete tasks\n-----------")
-	fmt.Println("These are the saved tasks. Enter the ID of the task to delete.")
-
-	for _, todo := range TodoList {
-		fmt.Printf("\tID: %v, Title: %v, Completed: %v\n", todo.ID, todo.Title, todo.Completed)
-		fmt.Println()
-	}
-
-	arrayIdStr := io.GetAString("Enter ID")
-	fmt.Println(arrayIdStr)
-
-	arrayId, err := strconv.Atoi(arrayIdStr)
-	if err != nil {
+	fmt.Println("hello")
+	if isTodoListEmpty() {
 		return
 	}
 
-	removeElement(TodoList, arrayId-1)
+	fmt.Println("\nDelete tasks\n-----------")
+	fmt.Println("These are the saved tasks. Enter the task number to delete.")
+	listTasks()
 
+	arrayId, _ := io.ReceiveArrayElementId(TodoList)
+
+	TodoList = removeElement(TodoList, arrayId)
+	fmt.Printf("Task %v deleted successfully", arrayId+1)
+}
+
+func completeTask() {
+	if isTodoListEmpty() {
+		return
+	}
+
+	fmt.Println("\nMark Task as completed\n-----------")
+	fmt.Println("These are the saved tasks. Enter the task number to complete.")
+	listTasks()
+
+	arrayId, _ := io.ReceiveArrayElementId(TodoList)
+	markTodoAsCompleted(arrayId)
+}
+
+func listTasks() {
+	for i, _todo := range TodoList {
+		todo, _ := json.MarshalIndent(_todo, "", "    ")
+		fmt.Printf("Task %v: %s", i+1, todo)
+		fmt.Println()
+	}
+	fmt.Println()
+}
+
+func isTodoListEmpty() bool {
+	if len(TodoList) == 0 {
+		fmt.Println("No task found")
+		return true
+	}
+	return false
 }
 
 func removeElement(slice []Todo, s int) []Todo {
 	return append(slice[:s], slice[s+1:]...)
+}
+
+func markTodoAsCompleted(arrayId int) {
+	if arrayId > len(TodoList) {
+		fmt.Println("Invalid input")
+		return
+	}
+	if TodoList[arrayId].Completed {
+		fmt.Println("Task is already completed")
+		return
+	}
+
+	TodoList[arrayId].Completed = true
+	fmt.Printf("Task %v completed successfully", arrayId+1)
 }
